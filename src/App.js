@@ -1,23 +1,31 @@
-import logo from './logo.svg';
-import './App.css';
-
-function App() {
+import NavBar from "./NavBar.jsx";
+import Category from "./Category.jsx";
+import Search from "./Search.jsx";
+import React from "react";
+import Table from "./Table.jsx";
+function App(props) {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <React.Fragment>
+        <NavBar />
+        <div className="row">
+          <div className="col-2 p-4">
+            <Category />
+          </div>
+
+          <div className="col-10 p-4">
+            <div className="row">
+              <div className="col-3">
+                <Search />
+              </div>
+            </div>
+            <div className="row">
+              <div className="col-8"></div>
+              <Table />
+            </div>
+          </div>
+        </div>
+      </React.Fragment>
     </div>
   );
 }
