@@ -1,91 +1,156 @@
+// sir ka code
 import React from "react";
 
 class Table extends React.Component {
   state = {
-    allMovies: [
-      {
-        title: "Terminator",
-        genre: "Action",
-        stock: "2",
-        rate: "2.5",
-      },
-      {
-        title: "Terminator",
-        genre: "Action",
-        stock: "2",
-        rate: "2.5",
-      },
-      {
-        title: "Terminator",
-        genre: "Action",
-        stock: "2",
-        rate: "2.5",
-      },
-      {
-        title: "Terminator",
-        genre: "Action",
-        stock: "2",
-        rate: "2.5",
-      },
-    ],
+    allMovies: [],
+    currPage: 1,
   };
+
+  componentDidMount() {
+    fetch("/movies")
+      .then(function (res) {
+        return res.json();
+      })
+      .then((json) => {
+        this.setState({ allMovies: json });
+      });
+  }
+
   render() {
-    // isliye kyoki esa na ho ki items h 10 and pagination me wo 10 hi show krra .... 10 pages
-    let numberOfPages = Math.ceil(this.state.allMovies.length / 6);
-    // ye kaam pagination array k liye
+    let moviesToDisplay = [];
+    if (this.props.searchString) {
+      let strToCompare = this.props.searchString.toLowerCase();
+      let moviesInState = this.state.allMovies;
+
+      for (let i = 0; i < moviesInState.length; i++) {
+        if (moviesInState[i].title.toLowerCase().includes(this.props.searchString)) {
+          moviesToDisplay.push(moviesInState[i]);
+        }
+      }
+    } else {
+      moviesToDisplay = this.state.allMovies;
+    }
+
+    let numberOfPages = Math.ceil(moviesToDisplay.length / 5);
     let arr = [];
     for (let i = 1; i <= numberOfPages; i++) {
       arr.push(i);
     }
+
+    let starting = (this.state.currPage - 1) * 5;
+    let ending = this.state.currPage * 5 - 1;
+
+    moviesToDisplay = moviesToDisplay.slice(
+      starting,
+      Math.min(ending, moviesToDisplay.length - 1) + 1
+    );
+
     return (
-      <table class="table">
-        <thead>
-          <tr>
-            <th scope="col">Title</th>
-            <th scope="col">Genre</th>
-            <th scope="col">Stock</th>
-            <th scope="col">rate</th>
-            <th scope="col"></th>
-            <th scope="col"></th>
-          </tr>
-        </thead>
-        <tbody>
-          {this.state.allMovies.map((el) => {
-            return (
-              <tr>
-                <td>{el.title}</td>
-                <td>{el.genre}</td>
-                <td>{el.stock}</td>
-                <td>{el.rate}</td>
-                <td>
-                  <button type="button" class="btn btn-danger">
-                    Delete
-                  </button>
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-        <nav aria-label="Page navigation example">
-          <ul class="pagination">
-            {arr.map(function (e) {
+      <div>
+        <table class="table">
+          <thead>
+            <tr>
+              <th scope="col">Title</th>
+              <th scope="col">Genre</th>
+              <th scope="col">Stock</th>
+              <th scope="col">Rate</th>
+              <th scope="col"></th>
+              <th scope="col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {moviesToDisplay.map((el) => {
               return (
-                <li class="page-item">
+                <tr key={el._id}>
+                  <td>{el.title}</td>
+                  <td>{el.genre.name}</td>
+                  <td>{el.numberInStock}</td>
+                  <td>{el.dailyRentalRate}</td>
+                  <td
+                    onClick={() => {
+                      let allMovies = this.state.allMovies;
+
+                      let index = allMovies.findIndex((e) => e._id == el._id);
+
+                      allMovies[index].liked = true;
+
+                      this.setState({ allMovies: allMovies });
+                    }}
+                  >
+                    {el.liked ? "Liked!" : "Like"}
+                  </td>
+                  <td>
+                    <button
+                      type="button"
+                      class="btn btn-danger"
+                      onClick={() => {
+                        let allMovies = this.state.allMovies;
+
+                        allMovies = allMovies.filter((eli) => {
+                          return eli._id != el._id;
+                        });
+
+                        this.props.sendData(allMovies.length);
+                        this.setState({ allMovies: allMovies });
+                      }}
+                    >
+                      Delete
+                    </button>
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+
+        <nav>
+          <ul class="pagination">
+            <li
+              class="page-item"
+              onClick={() => {
+                let currPage = this.state.currPage;
+                currPage--;
+                if (currPage < 1) currPage = 1;
+                this.setState({ currPage: currPage });
+              }}
+            >
+              <a class="page-link" href="#">
+                Previous
+              </a>
+            </li>
+
+            {arr.map((el) => {
+              return (
+                <li
+                  class="page-item"
+                  onClick={() => {
+                    this.setState({ currPage: el });
+                  }}
+                >
                   <a class="page-link" href="#">
-                    {e}
+                    {el}
                   </a>
                 </li>
               );
             })}
 
-            <li class="page-item">
+            <li
+              class="page-item"
+              onClick={() => {
+                let currPage = this.state.currPage;
+                currPage++;
+                if (currPage > numberOfPages) currPage = numberOfPages;
+                this.setState({ currPage: currPage });
+              }}
+            >
               <a class="page-link" href="#">
                 Next
               </a>
             </li>
           </ul>
         </nav>
-      </table>
+      </div>
     );
   }
 }
